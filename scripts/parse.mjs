@@ -47,7 +47,6 @@ const parseFile = async (filename) => {
 
 				csvContent += `\t`;
 			});
-			csvContent += `\n`;
 			rows.forEach((row) => {
 				let line = '';
 				for (let index = 0; index < headers.length; index++) {
@@ -61,7 +60,7 @@ const parseFile = async (filename) => {
 						}
 					}
 				}
-				csvContent += `${line}\n`;
+				csvContent += `\n${line}`;
 			});
 
 			const folderPath = join(__dirname, 'output');

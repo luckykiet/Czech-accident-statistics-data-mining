@@ -23,5 +23,6 @@ git clone https://github.com/luckykiet/Czech-accident-statistics-data-mining.git
 
 ```
 cd scripts
+node install
 node parse.mjs filename1 filename2 ...
 ```

@@ -1,6 +1,7 @@
 import { access, constants, mkdir, readFile, writeFile } from 'fs/promises';
 import { dirname, join } from 'path';
 
+import { decode } from 'windows-1250';
 import { dictionary } from './dictionary.mjs';
 import { fileURLToPath } from 'url';
 
@@ -10,7 +11,8 @@ const __dirname = dirname(__filename);
 const parseFile = async (filename) => {
 	try {
 		const file = getFilenameAndExtension(filename);
-		const data = await readFile(filename, 'utf8');
+		const input = await readFile(filename);
+		const data = decode(input);
 
 		const tableRegex = /<(?:table|TABLE)[^>]*>(.*?)<\/(?:table|TABLE)>/gis;
 		const tableMatches = data.match(tableRegex);

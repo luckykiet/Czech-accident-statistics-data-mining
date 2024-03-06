@@ -1,0 +1,22 @@
+{
+  "name": "parser",
+  "version": "1.0.0",
+  "description": "Parse xls to csv",
+  "main": "parse.mjs",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/luckykiet/Czech-accident-statistics-data-mining.git"
+  },
+  "author": "Tuan Kiet Nguyen <ngntuankiet@gmail.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/luckykiet/Czech-accident-statistics-data-mining/issues"
+  },
+  "homepage": "https://github.com/luckykiet/Czech-accident-statistics-data-mining#readme",
+  "dependencies": {
+    "windows-1250": "^3.0.4"
+  }
+}

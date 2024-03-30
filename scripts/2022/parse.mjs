@@ -1,8 +1,8 @@
+import { Unknown, dictionary, headers } from './dictionary.mjs';
 import { access, constants, mkdir, readFile, writeFile } from 'fs/promises';
-import { dictionary, headers } from './dictionary.mjs';
+import { decode, encode } from 'windows-1250';
 import { dirname, join } from 'path';
 
-import { decode } from 'windows-1250';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -16,26 +16,42 @@ const parseFile = async (filename) => {
 		const data = decode(input);
 
 		let csvContent = '';
-		headers.forEach((header) => {
-			csvContent += dictionary[header.trim()]
-				? dictionary[header.trim()]
-				: header.trim();
-
-			csvContent += `\t`;
+		let first = true;
+		headers.forEach((header, index) => {
+			if (!Unknown.includes(headers[index])) {
+				if (first) {
+					csvContent += dictionary[header.trim()]
+						? dictionary[header.trim()]
+						: header.trim();
+					first = false;
+				} else {
+					csvContent += '\t';
+					csvContent += dictionary[header.trim()]
+						? dictionary[header.trim()]
+						: header.trim();
+				}
+			}
 		});
 		data.split('\n').forEach((row) => {
 			const fields = row.split(inputDelimiter);
 			let line = '';
-
+			let first = true;
 			for (let index = 0; index < headers.length; index++) {
-				if (!fields[index]) {
-					line += '\t';
-				} else {
-					const field = fields[index].trim().replace(/"/g, '');
-					if (index === 0) {
-						line += field;
+				if (!Unknown.includes(headers[index])) {
+					if (!fields[index]) {
+						line += '\t';
 					} else {
-						line += '\t' + field;
+						// skip unknown columns
+						const field = fields[index].trim().replace(/"/g, '');
+						const formattedField = formatField(
+							field.charAt(0).toUpperCase() + field.slice(1).toLowerCase()
+						);
+						if (first) {
+							line += formattedField;
+							first = false;
+						} else {
+							line += '\t' + formattedField;
+						}
 					}
 				}
 			}
@@ -77,6 +93,14 @@ const getFilenameAndExtension = (filename) => {
 		name,
 		extension,
 	};
+};
+
+const formatField = (field) => {
+	const regex = /([a-zA-Z]+)(\d+)(\S*)/g;
+	let formattedField = field.replace(regex, '$1 $2 $3');
+	const komunikaceRegex = /\b(komunikace)\b/gi;
+	formattedField = formattedField.replace(komunikaceRegex, ' $1 ');
+	return formattedField;
 };
 
 const processArguments = async () => {

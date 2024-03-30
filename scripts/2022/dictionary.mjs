@@ -8,8 +8,8 @@ export const dictionary = {
 	p12: 'main_accident_cause',
 	p13: 'accident_consequences',
 	p13a: 'accident_with_death',
-	p13a: 'accident_with_serious_injury',
-	p13a: 'accident_with_light_injury',
+	p13b: 'accident_with_serious_injury',
+	p13c: 'accident_with_light_injury',
 	p14: 'total_motor_cost',
 	p15: 'road_surface_type',
 	p16: 'surface_status',
@@ -57,6 +57,7 @@ export const dictionary = {
 	p4a: 'accident_country_state',
 	p4b: 'accident_country_district',
 	p4c: 'accident_country_formation',
+	p5a: 'accident_location',
 	p50a: 'vehicle_after_accident',
 	p50b: 'vehicle_leakage_of_materials',
 	p51: 'vehicle_releasing_method',
@@ -71,6 +72,9 @@ export const dictionary = {
 	p8: 'fixed_obstacle_type',
 	p8a: 'animal_type',
 	p9: 'accident_character',
+	h: 'state',
+	i: 'street',
+	k: 'location_type',
 };
 
 export const headers = [
@@ -138,4 +142,20 @@ export const headers = [
 	's',
 	't',
 	'p5a',
+];
+
+export const Unknown = [
+	'a',
+	'b',
+	'f',
+	'g',
+	'j',
+	'l',
+	'n',
+	'o',
+	'p',
+	'q',
+	'r',
+	's',
+	't',
 ];

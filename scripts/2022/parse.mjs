@@ -1,13 +1,14 @@
 import { Unknown, dictionary, headers } from './dictionary.mjs';
 import { access, constants, mkdir, readFile, writeFile } from 'fs/promises';
-import { decode, encode } from 'windows-1250';
 import { dirname, join } from 'path';
 
+import { decode } from 'windows-1250';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const inputDelimiter = ';';
+const outputDelimiter = ';';
 
 const parseFile = async (filename) => {
 	try {
@@ -25,7 +26,7 @@ const parseFile = async (filename) => {
 						: header.trim();
 					first = false;
 				} else {
-					csvContent += '\t';
+					csvContent += outputDelimiter;
 					csvContent += dictionary[header.trim()]
 						? dictionary[header.trim()]
 						: header.trim();
@@ -39,7 +40,7 @@ const parseFile = async (filename) => {
 			for (let index = 0; index < headers.length; index++) {
 				if (!Unknown.includes(headers[index])) {
 					if (!fields[index]) {
-						line += '\t';
+						line += outputDelimiter;
 					} else {
 						// skip unknown columns
 						const field = fields[index].trim().replace(/"/g, '');
@@ -50,7 +51,7 @@ const parseFile = async (filename) => {
 							line += formattedField;
 							first = false;
 						} else {
-							line += '\t' + formattedField;
+							line += outputDelimiter + formattedField;
 						}
 					}
 				}
@@ -75,10 +76,16 @@ const parseFile = async (filename) => {
 		}
 
 		const outputPath = join(folderPath, `${file.name}.csv`);
-
-		return writeFile(outputPath, csvContent).then(() => {
+		const outputLatinPath = join(folderPath, `${file.name}_latin.csv`);
+		await writeFile(outputPath, csvContent).then(() => {
 			console.log(`File "${file.name}.csv" created!`);
 		});
+		return writeFile(outputLatinPath, csvContent, { encoding: 'latin1' }).then(
+			() => {
+				console.log(`File "${file.name}.csv" created!`);
+			}
+		);
+		return;
 	} catch (error) {
 		console.error(`Error: ${error}`);
 	}
@@ -99,7 +106,21 @@ const formatField = (field) => {
 	const regex = /([a-zA-Z]+)(\d+)(\S*)/g;
 	let formattedField = field.replace(regex, '$1 $2 $3');
 	const komunikaceRegex = /\b(komunikace)\b/gi;
-	formattedField = formattedField.replace(komunikaceRegex, ' $1 ');
+	formattedField = formattedField.replace(
+		komunikaceRegex,
+		(match, p1, offset, string) => {
+			const beforeSpace = offset > 0 && string[offset - 1] === ' ';
+			const afterSpace =
+				offset + match.length < string.length &&
+				string[offset + match.length] === ' ';
+			if (beforeSpace || afterSpace) {
+				return match;
+			} else {
+				return ' ' + p1 + ' ';
+			}
+		}
+	);
+
 	return formattedField;
 };
 

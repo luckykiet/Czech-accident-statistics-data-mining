@@ -46,9 +46,7 @@ const parseFile = async (filename) => {
 						let formattedField = formatField(
 							field.charAt(0).toUpperCase() + field.slice(1).toLowerCase()
 						);
-						if (formattedField !== '' && !isNaN(formattedField)) {
-							formattedField = parseFloat(formattedField).toString();
-						}
+
 						if (first) {
 							if (
 								dictionary[displayedHeaders[index]] &&
@@ -56,6 +54,13 @@ const parseFile = async (filename) => {
 								Object.keys(dictionary[displayedHeaders[index]]['items'])
 									.length > 0
 							) {
+								if (
+									formattedField !== '' &&
+									!isNaN(formattedField) &&
+									!dictionary[displayedHeaders[index]['skipIntParse']]
+								) {
+									formattedField = parseFloat(formattedField).toString();
+								}
 								formattedField = dictionary[displayedHeaders[index]]['items'][
 									formattedField
 								]
@@ -72,6 +77,13 @@ const parseFile = async (filename) => {
 								Object.keys(dictionary[displayedHeaders[index]]['items'])
 									.length > 0
 							) {
+								if (
+									formattedField !== '' &&
+									!isNaN(formattedField) &&
+									!dictionary[displayedHeaders[index]['skipIntParse']]
+								) {
+									formattedField = parseFloat(formattedField).toString();
+								}
 								formattedField = dictionary[displayedHeaders[index]]['items'][
 									formattedField
 								]
@@ -210,7 +222,7 @@ const processArguments = async () => {
 const dictionary = {
 	p1: { label: 'id' },
 	p8: {
-		label: 'druh pevne prekazky',
+		label: 'Druh pevne prekazky',
 		items: {
 			1: 'strom',
 			2: 'sloup (telefonní, veřejného osvětlení, elektrického vedení, signalizace apod.)',
@@ -280,7 +292,6 @@ const dictionary = {
 			306: 'předjíždění - vlevo vozidla odbočujícího vlevo',
 			307: 'předjíždění - v místech, kde je to zakázáno dopravní značkou',
 			308: 'pri předjíždění - byla přejeta podélná čára souvislá',
-			308: 'pri předjíždění - v místech, kde je to zakázáno dopravní značkou',
 			309: 'bránění v předjíždění',
 			310: 'přehlédnutí již předjíždějícícho souběžně jedoucího vozidla',
 			311: 'jiný druh nesprávného předjíždění',
@@ -521,7 +532,21 @@ const dictionary = {
 			0: 'nezjištěno',
 		},
 	},
-	p30a: { label: 'Pritomnost alkoholu (Chodec)', items: {} },
+	p30a: {
+		label: 'Pritomnost alkoholu (Chodec)',
+		items: {
+			1: 'ano - obsah alkoholu v krvi do 0,24 promile',
+			2: 'ne',
+			3: 'ano - obsah alkoholu v krvi od 0,24 promile do 0,5 promile',
+			4: 'odmítnuto',
+			5: '',
+			6: 'ano - obsah alkoholu v krvi od 0,5 promile do 0,8 promile',
+			7: 'ano - obsah alkoholu v krvi od 0,8 promile do 1,0 promile',
+			8: 'ano - obsah alkoholu v krvi od 1,0 promile do 1,5 promile',
+			9: 'ano - obsah alkoholu v krvi 1,5 promile a více',
+			0: 'nezjišťováno',
+		},
+	},
 	p30b: { label: 'Typ drogy (Chodec)', items: {} },
 	p31: {
 		label: 'Chovani chodce',
@@ -562,7 +587,11 @@ const dictionary = {
 			4: 'divka do 15 let',
 		},
 	},
-	p33d: { label: 'Rok narozeni chodce (posledni dvojcisli)', items: {} },
+	p33d: {
+		label: 'Rok narozeni chodce (posledni dvojcisli)',
+		items: {},
+		skipIntParse: true,
+	},
 	p33e: { label: 'Statni prislusnost chodce', items: {} },
 	p33f: {
 		label: 'Poskytnuti prvni pomoci',
@@ -768,7 +797,7 @@ const dictionary = {
 	p45b: { label: 'Informace o vozidle', items: {} },
 	p45d: { label: 'Typ paliva pro pohon vozidla', items: {} },
 	p45f: { label: 'Typ kola vozidla', items: {} },
-	p47: { label: 'Rok vyroby vozidla', items: {} },
+	p47: { label: 'Rok vyroby vozidla', items: {}, skipIntParse: true },
 	p48a: {
 		label: 'Charakteristika vozidla',
 		items: {
@@ -1006,29 +1035,7 @@ const dictionary = {
 			0: 'neprichazi v uvahu - nejedna se o srazku jedoucich vozidel',
 		},
 	},
-	p8: {
-		label: 'Druh pevne prekazky',
-		items: {
-			1: 'strom',
-			2: 'sloup telefonní, veřejného osvětlení, elektrického vedení, signalizace apod.',
-			3: 'odraznik, patnik, sloupek smerovy, sloupek dopravni znacky apod.',
-			4: 'svodidlo',
-			5: 'prekazka vznikla provozem jineho vozidla (napr. ztrata nakladu, vystroje vozidla nebo jeho casti)',
-			6: 'zed, pevna cast mostu, podjezdu, tunelu apod.',
-			7: 'zavory zeleznicniho prejezdu',
-			8: 'prekazka vznikla stavebni cinnosti (přenosné dopravní značky, hromada štěrku, písku nebo jiného stavebního materiálu apod.)',
-			9: 'jina prekazka (zabradli, oploceni, nasep, nastupni ostruvek apod.)',
-			0: 'neprichazi v uvahu, nejedna se o srazku s pevnou prekazkou',
-		},
-	},
 	p8a: { label: 'Typ zvirete', items: {} },
-	p9: {
-		label: 'Charakter nehody',
-		items: {
-			1: 'nehoda s nasledky na zivote',
-			2: 'nehoda pouze s hmotnou skodou',
-		},
-	},
 	h: { label: 'Stat', items: {} },
 	i: { label: 'Ulice', items: {} },
 	k: { label: 'Typ umisteni', items: {} },

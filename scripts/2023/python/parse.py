@@ -1,6 +1,6 @@
 import numpy as np
 import os
-import sys
+import argparse
 import csv
 from bs4 import BeautifulSoup
 
@@ -54,6 +54,20 @@ dictionary = {
             "8": "1,0 do 1,5 promile",
             "9": "1,5 promile a vice",
             "0": "nezjistovano",
+        },
+    },
+    "p11a": {
+        "label": "Pritomnost drog u vinika",
+        "items": {
+            "1": "THC (tetrahydrokanabinol)",
+            "2": "AMP (amfetamin)",
+            "3": "MET (metamfetamin)",
+            "4": "OPI (opiáty)",
+            "5": "benzodiazepin",
+            "6": "jiné",
+            "7": "odmítnuto",
+            "8": "nezjišťováno",
+            "0": "ne",
         },
     },
     "p12": {
@@ -132,6 +146,7 @@ dictionary = {
     "p13b": {"label": "Nehoda s vaznym zranenim", "items": {"0": "ne", "1": "ano"}},
     "p13c": {"label": "Nehoda s lehkym zranenim", "items": {"0": "ne", "1": "ano"}},
     "p14": {"label": "Celkova hmotna skoda", "items": {}},
+    "p14*100": {"label": "Celkova hmotna skoda", "items": {}},
     "p15": {
         "label": "Typ povrchu silnice",
         "items": {
@@ -465,7 +480,7 @@ dictionary = {
             "9": "vetev mimourovnove krizovatky",
         },
     },
-    "p4": {"label": "Zeme nehody", "items": {}},
+    "p4": {"label": "Uzemni misto dopravni nehody", "items": {}},
     "p44": {
         "label": "Druh vozidla",
         "items": {
@@ -640,9 +655,27 @@ dictionary = {
         },
     },
     "p49": {"label": "Smyk", "items": {"1": "ano", "0": "ne"}},
-    "p4a": {"label": "Stat nehody", "items": {}},
-    "p4b": {"label": "Okres zeme nehody", "items": {}},
-    "p4c": {"label": "Uzemni celky zeme nehody", "items": {}},
+    "p4a": {
+        "label": "Kraj nehody",
+        "items": {
+            "0": "Praha",
+            "1": "Středočeský",
+            "14": "Olomoucký",
+            "15": "Zlínský",
+            "16": "Vysočina",
+            "17": "Pardubický",
+            "18": "Liberecký",
+            "19": "Karlovarský",
+            "2": "Jihočeský",
+            "3": "Plzeňský",
+            "4": "Ústecký",
+            "5": "Královehradecký",
+            "6": "Jihomoravský",
+            "7": "Moravskoslezský",
+        },
+    },
+    "p4b": {"label": "Okres nehody", "items": {}},
+    "p4c": {"label": "Uzemni celky mista nehody", "items": {}},
     "p5a": {"label": "Lokalita nehody", "items": {"1": "v obci", "2": "mimo obec"}},
     "p50a": {
         "label": "Vozidlo po nehode",
@@ -840,7 +873,34 @@ dictionary = {
             "0": "neprichazi v uvahu - nejedna se o srazku jedoucich vozidel",
         },
     },
-    "p8a": {"label": "Typ zvirete", "items": {}},
+    "p8a": {
+        "label": "Typ zvirete",
+        "items": {
+            "1": "srna, srnec",
+            "2": "jelen, laň",
+            "3": "daněk",
+            "4": "muflon",
+            "5": "zajíc",
+            "6": "bažant",
+            "7": "divoké prase",
+            "8": "liška",
+            "9": "sob",
+            "10": "vlk",
+            "11": "medvěd",
+            "12": "jiná zvěř",
+            "13": "vepř",
+            "14": "kráva, tele",
+            "15": "kůň",
+            "16": "koza",
+            "17": "ovce",
+            "18": "pes",
+            "19": "kočka",
+            "20": "slepice, kohout",
+            "21": "kachna, husa",
+            "22": "jiné zvíře",
+            "0": "nejde o srážku se zvěří/zvířetem",
+        },
+    },
     "h": {"label": "Stat", "items": {}},
     "i": {"label": "Ulice", "items": {}},
     "k": {"label": "Typ umisteni", "items": {}},
@@ -915,10 +975,12 @@ def parse_file(filename):
             rows.pop(0)
 
         # Ensure that all rows have the same length
-        max_row_length = max(rows)
-        for row_data in extracted_data:
-            while len(row_data) < max_row_length:
-                row_data.append(None)
+        for i, row in enumerate(extracted_data):
+            while len(row) < len(translated):
+                row.append("")
+            if len(row) > len(headers):
+                rows[i] = row[: len(headers)]
+                print(rows[i])
 
         # Convert the extracted data to a NumPy array
         extracted_data = np.array(extracted_data)
@@ -944,13 +1006,78 @@ def parse_file(filename):
         print(f"Error: {e}")
 
 
-def process_arguments():
-    if len(sys.argv) < 2:
-        print('Invalid command. Must be "python parse.py filename1 filename2..."')
-        return
+def parse_file_raw(filename):
+    try:
+        print(f'Reading "{filename}" ...')
+        # Read HTML file
+        with open(filename, "r", encoding="windows-1250") as file:
+            data = file.read()
 
-    for filename in sys.argv[1:]:
-        parse_file(filename)
+        # Parse HTML using BeautifulSoup
+        soup = BeautifulSoup(data, "lxml")
+
+        # Extract table data
+        table = soup.find("table")
+        if not table:
+            raise Exception("No table found in the HTML.")
+
+        # Extract column headers
+        headers = [header.get_text(strip=True) for header in table.find_all("th")]
+        # Initialize lists to store the extracted data
+        rows = []
+
+        # Extract rows
+        for row in table.find_all("tr"):
+            rows.append([data.get_text(strip=True) for data in row.find_all("td")])
+
+        # Remove the first row if it's empty
+        if rows and not rows[0]:
+            rows.pop(0)
+        # Ensure that all rows have the same length as the header row
+
+        for i, row in enumerate(rows):
+            while len(row) < len(headers):
+                row.append("")
+            if len(row) > len(headers):
+                rows[i] = row[: len(headers)]
+
+        extracted_data = np.array(rows)
+
+        # Write data to CSV
+        output_folder = "output"
+        if not os.path.exists(output_folder):
+            os.makedirs(output_folder)
+
+        # Write data to CSV in the output folder
+        output_filename = os.path.join(
+            output_folder,
+            os.path.splitext(os.path.basename(filename))[0] + "_raw" + ".csv",
+        )
+
+        with open(output_filename, "w", newline="", encoding="utf-8") as csvfile:
+            writer = csv.writer(csvfile, delimiter=";")
+            writer.writerow(headers)
+            writer.writerows(extracted_data)
+
+        print(f'File "{output_filename}" created!')
+
+    except Exception as e:
+        print(f"Error: {e}")
+
+
+def process_arguments():
+    parser = argparse.ArgumentParser(description="Process some files.")
+    parser.add_argument("files", nargs="+", help="list of files to parse")
+    parser.add_argument("-raw", action="store_true", help="parse files in raw mode")
+
+    args = parser.parse_args()
+
+    if args.raw:
+        for filename in args.files:
+            parse_file_raw(filename)
+    else:
+        for filename in args.files:
+            parse_file(filename)
 
     print("Completed")
 

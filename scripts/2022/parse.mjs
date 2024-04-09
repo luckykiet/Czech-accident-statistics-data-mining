@@ -559,7 +559,9 @@ const dictionary = {
 			6: 'nahla zmena smeru chuze',
 			7: 'naraz do vozidla z boku',
 			8: 'hra deti na vozovce',
+			0: 'nezjisteno',
 		},
+		default: 0,
 	},
 	p32: {
 		label: 'Situace v miste nehody',

@@ -1,4 +1,15 @@
 dictionary = {
+    "age_group": {
+        "label": "Vekova skupina",
+        "items": {
+            "0": "do 15 let",
+            "1": "do 26 let",
+            "2": "do 50 let",
+            "3": "do 65 let",
+            "4": "do 80 let",
+            "5": "81 let a vice",
+        },
+    },
     "p1": {"label": "id", "skipIntParse": True},
     "p8": {
         "label": "Druh pevne prekazky",

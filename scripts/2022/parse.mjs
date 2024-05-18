@@ -32,7 +32,8 @@ const parseFile = async (filename) => {
 				}
 			}
 		});
-		data.split('\n').forEach((row) => {
+		const array = data.split('\n');
+		array.forEach((row, i) => {
 			const fields = row.split(inputDelimiter);
 			let line = '';
 			let first = true;
@@ -96,7 +97,9 @@ const parseFile = async (filename) => {
 					}
 				}
 			}
-			csvContent += `\n${line}`;
+			if (i !== array.length - 1) {
+				csvContent += `\n${line}`;
+			}
 		});
 
 		const folderPath = join(__dirname, 'output');
@@ -125,7 +128,101 @@ const parseFile = async (filename) => {
 				console.log(`File "${file.name}_latin.csv" created!`);
 			}
 		);
-		return;
+	} catch (error) {
+		console.error(`Error: ${error}`);
+	}
+};
+
+const parseFileRaw = async (filename) => {
+	try {
+		const file = getFilenameAndExtension(filename);
+		const input = await readFile(filename);
+		const data = decode(input);
+
+		let csvContent = '';
+		let first = true;
+		displayedHeaders.forEach((header, index) => {
+			if (!Unknown.includes(header)) {
+				if (first) {
+					csvContent += header.trim();
+					first = false;
+				} else {
+					csvContent += outputDelimiter;
+					csvContent += header.trim();
+				}
+			}
+		});
+		const array = data.split('\n');
+		array.forEach((row, i) => {
+			const fields = row.split(inputDelimiter);
+			let line = '';
+			let first = true;
+			for (let index = 0; index < displayedHeaders.length; index++) {
+				if (!Unknown.includes(displayedHeaders[index])) {
+					if (!fields[index]) {
+						line += outputDelimiter;
+					} else {
+						// skip unknown columns
+						const field = fields[index].trim().replace(/"/g, '');
+						let formattedField = formatField(
+							field.charAt(0).toUpperCase() + field.slice(1).toLowerCase()
+						);
+
+						if (first) {
+							if (
+								formattedField !== '' &&
+								!isNaN(formattedField) &&
+								!dictionary[displayedHeaders[index]['skipIntParse']]
+							) {
+								formattedField = parseFloat(formattedField).toString();
+							}
+
+							line += removeDiacritics(formattedField);
+							first = false;
+						} else {
+							if (
+								formattedField !== '' &&
+								!isNaN(formattedField) &&
+								!dictionary[displayedHeaders[index]['skipIntParse']]
+							) {
+								formattedField = parseFloat(formattedField).toString();
+							}
+							line += outputDelimiter + removeDiacritics(formattedField);
+						}
+					}
+				}
+			}
+			if (i !== array.length - 1) {
+				csvContent += `\n${line}`;
+			}
+		});
+
+		const folderPath = join(__dirname, 'output');
+
+		try {
+			await access(folderPath, constants.F_OK);
+		} catch (err) {
+			if (err.code === 'ENOENT') {
+				try {
+					await mkdir(folderPath);
+				} catch (mkdirErr) {
+					console.error('Error creating directory:', mkdirErr);
+				}
+			} else {
+				console.error('Error accessing directory:', err);
+			}
+		}
+
+		const outputPath = join(folderPath, `${file.name}_raw.csv`);
+		const outputLatinPath = join(folderPath, `${file.name}_raw_latin.csv`);
+		await writeFile(outputPath, csvContent).then(() => {
+			console.log(`File "${file.name}_raw.csv" created!`);
+		});
+		return writeFile(outputLatinPath, csvContent, { encoding: 'latin1' }).then(
+			() => {
+				console.log(`File "${file.name}_raw_latin.csv" created!`);
+			}
+		);
 	} catch (error) {
 		console.error(`Error: ${error}`);
 	}
@@ -214,6 +311,7 @@ const processArguments = async () => {
 	for (let i = 2; i < process.argv.length; i++) {
 		const filename = process.argv[i];
 		await parseFile(filename);
+		await parseFileRaw(filename);
 	}
 	console.log('Completed');
 	process.exit(0);
